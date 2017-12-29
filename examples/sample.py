@@ -63,7 +63,8 @@ else:
     tgt = TargetField()
     max_len = 50
     def len_filter(example):
-        return len(example.src) <= max_len and len(example.tgt) <= max_len
+        a = len(example.src) > 0 and len(example.tgt) > 0
+        return a and len(example.src) <= max_len and len(example.tgt) <= max_len
     train = torchtext.data.TabularDataset(
         path=opt.train_path, format='tsv',
         fields=[('src', src), ('tgt', tgt)],
