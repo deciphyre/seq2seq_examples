@@ -33,6 +33,8 @@ parser.add_argument('--train_path', action='store', dest='train_path',
                     help='Path to train data')
 parser.add_argument('--dev_path', action='store', dest='dev_path',
                     help='Path to dev data')
+parser.add_argument('--test_path', action='store', dest='test_path',
+                    help='Path to test data')
 parser.add_argument('--expt_dir', action='store', dest='expt_dir', default='./experiment',
                     help='Path to experiment directory. If load_checkpoint is True, then path to checkpoint directory has to be provided')
 parser.add_argument('--load_checkpoint', action='store', dest='load_checkpoint',
@@ -50,6 +52,16 @@ LOG_FORMAT = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
 logging.basicConfig(format=LOG_FORMAT, level=getattr(logging, opt.log_level.upper()))
 logging.info(opt)
 
+src = SourceField()
+tgt = TargetField()
+max_len = 50
+context_max_len = 400
+
+
+def len_filter(example):
+    a = len(example.src) > 0 and len(example.tgt) > 0
+    return a and len(example.src) <= context_max_len and len(example.tgt) <= max_len
+
 if opt.load_checkpoint is not None:
     logging.info("loading checkpoint from {}".format(os.path.join(opt.expt_dir, Checkpoint.CHECKPOINT_DIR_NAME, opt.load_checkpoint)))
     checkpoint_path = os.path.join(opt.expt_dir, Checkpoint.CHECKPOINT_DIR_NAME, opt.load_checkpoint)
@@ -59,13 +71,7 @@ if opt.load_checkpoint is not None:
     output_vocab = checkpoint.output_vocab
 else:
     # Prepare dataset
-    src = SourceField()
-    tgt = TargetField()
-    max_len = 50
-    context_max_len = 400
-    def len_filter(example):
-        a = len(example.src) > 0 and len(example.tgt) > 0
-        return a and len(example.src) <= context_max_len and len(example.tgt) <= max_len
+
     train = torchtext.data.TabularDataset(
         path=opt.train_path, format='tsv',
         fields=[('src', src), ('tgt', tgt)],
@@ -121,7 +127,7 @@ else:
 
     # train
     t = SupervisedTrainer(loss=loss, batch_size=32,
-                          checkpoint_every=50,
+                          checkpoint_every=500,
                           print_every=10, expt_dir=opt.expt_dir)
 
     seq2seq = t.train(seq2seq, train,
@@ -131,6 +137,22 @@ else:
                       resume=opt.resume)
 
 predictor = Predictor(seq2seq, input_vocab, output_vocab)
+
+
+test = torchtext.data.TabularDataset(
+        path=opt.test_path, format='tsv',
+        fields=[('src', src), ('tgt', tgt)],
+        filter_pred=len_filter
+)
+for example in test:
+    target = example.tgt
+    seq_str = example.src
+    print(seq_str)
+    print('>', target)
+    prediction = predictor.predict(seq_str)
+    print('#', prediction)
+    print('='*20)
+
 
 while True:
     seq_str = raw_input("Type in a source sequence:")

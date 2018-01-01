@@ -29,7 +29,7 @@ class HierarchialSourceField(torchtext.data.Field):
 
     def __init__(self, **kwargs):
         logger = logging.getLogger(__name__)
-        field_sep = kwargs.get('field_sep')
+        #field_sep = kwargs.get('field_seperator')
         if kwargs.get('batch_first') is False:
             logger.warning("Option batch_first has to be set to use pytorch-seq2seq.  Changed to True.")
         kwargs['batch_first'] = True
@@ -40,10 +40,10 @@ class HierarchialSourceField(torchtext.data.Field):
         self.chunk_pad_token = '<cpad>'
 
         if kwargs.get('preprocessing') is None:
-            kwargs['preprocessing'] = lambda seq: [x.split(field_sep) for x in seq]
+            kwargs['preprocessing'] = lambda seq: [x.split('|') for x in seq]
         else:
             func = kwargs['preprocessing']
-            kwargs['preprocessing'] = lambda seq: func([x.split(field_sep) for x in seq])
+            kwargs['preprocessing'] = lambda seq: func([x.split('|') for x in seq])
 
 #        self.postprocessing = self.prenumericalize
         
@@ -89,7 +89,7 @@ class HierarchialSourceField(torchtext.data.Field):
             if self.postprocessing is not None:
                 arr = self.postprocessing(arr, None, train)
 
-#        print(arr)
+        #print(arr)
 
         arr = self.tensor_type(arr)
 #        print(arr.shape)
@@ -121,7 +121,7 @@ class HierarchialSourceField(torchtext.data.Field):
 
         field_max_len = max([len(y) for x in minibatch for y in x])
         
-#        print(max_len, field_max_len)
+       # print(max_len, field_max_len)
         for x in minibatch:
         #    print(x)
 
@@ -145,7 +145,7 @@ class HierarchialSourceField(torchtext.data.Field):
             
             if self.pad_first:
                 padded.append(
-                    [self.pad_token] * max(0, max_len - len(ypadded)) +
+                    [[self.chunk_pad_token]*field_max_len] * max(0, max_len - len(ypadded)) +
                     ([] if self.init_token is None else [self.init_token]) +
                     list(ypadded[:max_len]) +
                     ([] if self.eos_token is None else [self.eos_token]))
@@ -154,7 +154,7 @@ class HierarchialSourceField(torchtext.data.Field):
                     ([] if self.init_token is None else [self.init_token]) +
                     list(ypadded[:max_len]) +
                     ([] if self.eos_token is None else [self.eos_token]) +
-                    [self.pad_token] * max(0, max_len - len(ypadded)))
+                    [[self.chunk_pad_token] * field_max_len] * max(0, max_len - len(ypadded)))
             lengths.append(len(padded[-1]) - max(0, max_len - len(ypadded)))
 
  #       print(minibatch)
