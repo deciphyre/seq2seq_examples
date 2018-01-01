@@ -8,10 +8,10 @@ import torchtext
 
 import seq2seq
 from seq2seq.trainer import SupervisedTrainer
-from seq2seq.models import EncoderRNN, DecoderRNN, Seq2seq
+from seq2seq.models import EncoderRNN, DecoderRNN, HSeq2seq
 from seq2seq.loss import Perplexity
 from seq2seq.optim import Optimizer
-from seq2seq.dataset import SourceField, TargetField
+from seq2seq.dataset import SourceField, TargetField, HierarchialSourceField
 from seq2seq.evaluator import Predictor
 from seq2seq.util.checkpoint import Checkpoint
 
@@ -59,7 +59,7 @@ if opt.load_checkpoint is not None:
     output_vocab = checkpoint.output_vocab
 else:
     # Prepare dataset
-    src = SourceField()
+    src = HierarchialSourceField()
     tgt = TargetField()
     max_len = 50
     context_max_len = 400
@@ -76,11 +76,12 @@ else:
         fields=[('src', src), ('tgt', tgt)],
         filter_pred=len_filter
     )
+#    print(train)
     src.build_vocab(train, max_size=50000)
     tgt.build_vocab(train, max_size=50000)
     input_vocab = src.vocab
     output_vocab = tgt.vocab
-
+#    print(output_vocab.stoi)
     # NOTE: If the source field name and the target field name
     # are different from 'src' and 'tgt' respectively, they have
     # to be set explicitly before any training or inference

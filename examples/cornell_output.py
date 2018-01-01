@@ -61,28 +61,33 @@ input_vocab = checkpoint.input_vocab
 output_vocab = checkpoint.output_vocab
 
 predictor = Predictor(seq2seq, input_vocab, output_vocab)
-import os
-if os.path.exists(opt.out_path):
-    os.remove(opt.out_path)
+
+#import os
+#if os.path.exists(opt.out_path):
+#    os.remove(opt.out_path)
 
 with open(opt.dev_path) as d, open(opt.out_path, 'a') as o:
 #while True:
 #    seq_str = raw_input("Type in a source sequence:")
     outputs = []
     for s in d:
+#        print(s)
         s = s.strip()
         if len(s) > 0:
             s = s.split("\t")
 #            print(s)
             input = s[0]
             output = s[1]
-            seq = nltk.word_tokenize(input.strip())
+ #           print(input, output)
+            seq = nltk.word_tokenize(input.strip())            
             pred = predictor.predict(seq)
             if pred not in outputs:
                 if len(set(pred)) > 5:
-#                    print(input)
+#print(input)
 #                    print(">", output)
 #                    print("#", " ".join(pred))
                     o.write(input + "\n")
+                    o.write(">"+output+"\n")
                     o.write("#"+" ".join(pred)+"\n\n")
-                outputs.append(pred)
+                    
+            outputs.append(pred)
