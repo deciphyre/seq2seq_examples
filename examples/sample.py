@@ -62,9 +62,10 @@ else:
     src = SourceField()
     tgt = TargetField()
     max_len = 50
+    context_max_len = 250
     def len_filter(example):
-        a = len(example.src) > 0 and len(example.tgt) > 0
-        return a and len(example.src) <= max_len and len(example.tgt) <= max_len
+        a = len(example.src) > 0 and hasattr(example, 'tgt')
+        return a and len(example.src) <= context_max_len and len(example.tgt) <= max_len
     train = torchtext.data.TabularDataset(
         path=opt.train_path, format='tsv',
         fields=[('src', src), ('tgt', tgt)],
@@ -120,7 +121,7 @@ else:
 
     # train
     t = SupervisedTrainer(loss=loss, batch_size=32,
-                          checkpoint_every=50,
+                          checkpoint_every=1000,
                           print_every=10, expt_dir=opt.expt_dir)
 
     seq2seq = t.train(seq2seq, train,
