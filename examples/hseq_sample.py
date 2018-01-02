@@ -135,7 +135,7 @@ else:
         # optimizer.set_scheduler(scheduler)
 
     # train
-    t = SupervisedTrainer(loss=loss, batch_size=32,
+    t = SupervisedTrainer(loss=loss, batch_size=15,
                           checkpoint_every=500,
                           print_every=10, expt_dir=opt.expt_dir)
 
@@ -160,8 +160,8 @@ for example in test:
     print('#', prediction)
     print('='*20)
 
-# while True:
-#     seq_str = raw_input("Type in a source sequence:")
-#     seq = seq_str.strip().split()
-#
-#     print(predictor.predict(seq))
+while True:
+    seq_str = raw_input("Type in a source sequence:")
+    seq = seq_str.strip().split()
+
+    print(predictor.predict(seq))

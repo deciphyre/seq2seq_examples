@@ -143,15 +143,15 @@ test = torchtext.data.TabularDataset(
         path=opt.test_path, format='tsv',
         fields=[('src', src), ('tgt', tgt)],
         filter_pred=len_filter
-)
-for example in test:
-    target = example.tgt
-    seq_str = example.src
-    print(seq_str)
-    print('>', target)
-    prediction = predictor.predict(seq_str)
-    print('#', prediction)
-    print('='*20)
+ )
+# for example in test:
+#     target = example.tgt
+#     seq_str = example.src
+#     print(seq_str)
+#     print('>', target)
+#     prediction = predictor.predict(seq_str)
+#     print('#', prediction)
+#     print('='*20)
 
 
 while True:
