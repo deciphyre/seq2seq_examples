@@ -1,0 +1,16 @@
+DSTC Hierarchial
+Finished epoch 6: Train Perplexity: 2.4579, Dev Perplexity: 2.0758, Accuracy: 0.8525
+
+DSTC Plain
+Epoch 6: Train Perplexity: 3.7594, Dev Perplexity: 5.0530, Accuracy: 0.5736
+
+
+DSTC 3
+Finished epoch 6: Train Perplexity: 2.6667, Dev Perplexity: 3.5648, Accuracy: 0.6267
+
+DSTC Whole
+
+
+Cornell Sliding Window
+----------------------
+  Finished Epoch 6: Train Perplexity: 110.7387, Dev Perplexity: 492.0686, Accuracy: 0.0894
