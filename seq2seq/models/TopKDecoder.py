@@ -89,7 +89,7 @@ class TopKDecoder(torch.nn.Module):
         inputs, batch_size, max_length = self.rnn._validate_args(inputs, encoder_hidden, encoder_outputs,
                                                                  function, teacher_forcing_ratio)
 
-        self.pos_index = Variable(torch.LongTensor(range(batch_size)) * self.k).view(-1, 1)
+        self.pos_index = Variable(torch.LongTensor(range(batch_size)) * self.k).cuda().view(-1, 1)
 
         # Inflate the initial hidden states to be of size: b*k x h
         encoder_hidden = self.rnn._init_state(encoder_hidden)
