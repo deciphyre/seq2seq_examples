@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class Attention(nn.Module):
+class HAttention(nn.Module):
     r"""
     Applies an attention mechanism on the output features from the decoder.
 
@@ -38,7 +38,7 @@ class Attention(nn.Module):
 
     """
     def __init__(self, dim):
-        super(Attention, self).__init__()
+        super(HAttention, self).__init__()
         self.linear_out = nn.Linear(dim*2, dim)
         self.mask = None
 
@@ -56,7 +56,6 @@ class Attention(nn.Module):
         hidden_size = output.size(2)
         input_size = context.size(1)
         # (batch, out_len, dim) * (batch, in_len, dim) -> (batch, out_len, in_len)
-        #print(output.size(), context.size())
         attn = torch.bmm(output, context.transpose(1, 2))
         if self.mask is not None:
             attn.data.masked_fill_(self.mask, -float('inf'))

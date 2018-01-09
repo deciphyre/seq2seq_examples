@@ -1,7 +1,7 @@
 import torch.nn as nn
 
 from .baseRNN import BaseRNN
-
+from .attention import Attention
 
 class HierarchialRNN(BaseRNN):
     r"""
@@ -42,9 +42,10 @@ class HierarchialRNN(BaseRNN):
 
         self.variable_lengths = variable_lengths
         self.rnn = self.rnn_cell(hidden_size, hidden_size, n_layers,
-                                 batch_first=True, bidirectional=bidirectional, dropout=dropout_p)
+                                 batch_first=True, bidirectional=False, dropout=dropout_p)
+        self.attention = Attention(self.hidden_size)
 
-    def forward(self, input_var, input_lengths=None):
+    def forward(self, input_var, encoder_outputs, input_lengths=None):
         """
         Applies a multi-layer RNN to an input sequence.
 
@@ -61,7 +62,9 @@ class HierarchialRNN(BaseRNN):
         embedded = self.input_dropout(input_var)
         if self.variable_lengths:
             embedded = nn.utils.rnn.pack_padded_sequence(embedded, input_lengths, batch_first=True)
+#        print("Embedded Shape", embedded.size())
         output, hidden = self.rnn(embedded)
+        output, attn = self.attention(output, encoder_outputs)
         if self.variable_lengths:
             output, _ = nn.utils.rnn.pad_packed_sequence(output, batch_first=True)
         return output, hidden

@@ -8,7 +8,7 @@ import torchtext
 
 import seq2seq
 from seq2seq.trainer import SupervisedTrainer
-from seq2seq.models import EncoderRNN, DecoderRNN, HSeq2seq, HierarchialRNN
+from seq2seq.models import EncoderRNN, DecoderRNN, HSeq2seq, HierarchialRNN, TopKDecoder
 from seq2seq.loss import Perplexity
 from seq2seq.optim import Optimizer
 from seq2seq.dataset import SourceField, TargetField, HierarchialSourceField
@@ -119,9 +119,9 @@ else:
         encoder = EncoderRNN(len(src.vocab), max_len, hidden_size,
                              bidirectional=bidirectional, variable_lengths=True)
 
-        hrnn = HierarchialRNN(max_len, hidden_size * 2 if bidirectional else hidden_size, bidirectional=bidirectional)
-        decoder = DecoderRNN(len(tgt.vocab), max_len, hidden_size * 4 if bidirectional else hidden_size,
-                             dropout_p=0.2, use_attention=True, bidirectional=bidirectional,
+        hrnn = HierarchialRNN(max_len, hidden_size * 2 if bidirectional else hidden_size, bidirectional=False)
+        decoder = DecoderRNN(len(tgt.vocab), max_len, hidden_size * 2 if bidirectional else hidden_size,
+                             dropout_p=0.2, use_attention=True, bidirectional=False,
                              eos_id=tgt.eos_id, sos_id=tgt.sos_id)
         seq2seq = HSeq2seq(encoder, hrnn, decoder)
         if torch.cuda.is_available():
@@ -148,6 +148,7 @@ else:
                       teacher_forcing_ratio=0.5,
                       resume=opt.resume)
 
+seq2seq.decoder = TopKDecoder(seq2seq.decoder, 5)
 predictor = HierarchialPredictor(seq2seq, input_vocab, output_vocab)
 test = torchtext.data.TabularDataset(
         path=opt.test_path, format='tsv',
@@ -161,13 +162,13 @@ for example in test:
      target = example.tgt
      seq_str = ['|'.join(x) for x in example.src]
      prediction = predictor.predict(seq_str)
-     if prediction not in dups:
-         dups.append(prediction)
-         print(seq_str)
-         print('>', target)
+     #if prediction not in dups:
+     #dups.append(prediction)
+     print(seq_str)
+     print('>', target)
 
-         print('#', prediction)
-         print('='*20)
+     print('#', prediction)
+     print('='*20)
 
 #while True:
 #    seq_str = raw_input("Type in a source sequence:")

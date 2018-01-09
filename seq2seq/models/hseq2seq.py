@@ -69,17 +69,24 @@ class HSeq2seq(nn.Module):
 #        print(transformed.data)
 #        encoder_outputs, encode_hidden = self.encoder(input_variable, input_lengths)
         encoder_outputs, encoder_hidden = self.encoder(sorted_input, sorted_lengths.contiguous().tolist())
-        #print("Outputs of Encoder", encoder_outputs.size(), encoder_hidden.size())
         _, original_idx = perm.sort(0, descending=False)
-        encoder_outputs = encoder_outputs[original_idx]
-        last_outputs = encoder_outputs[:, -1, :].contiguous() # From [Batch Size, Seq Length, Chunk Length]
+        encoder_outputs = encoder_outputs[original_idx].contiguous()
+        reshaped_encoder_outputs = encoder_outputs.view(batch_size, sequence_length, -1,
+                                                                     encoder_outputs.size()[-1])
+        #print("Outputs of Encoder", encoder_outputs.size(), reshaped_encoder_outputs.size())
+
+        last_outputs = reshaped_encoder_outputs[:, :, -1, :].contiguous().view(batch_size, sequence_length, -1).contiguous() # From [Batch Size, Seq Length, Chunk Length]
         #print("Last outputs", last_outputs.size())
-        reshaped_encoder_outputs = last_outputs.view(batch_size, sequence_length, -1)
-        #print("Reshaped Outputs", reshaped_encoder_outputs.size())
+        #reshaped_encoder_outputs = last_outputs.view(batch_size, sequence_length, -1)
+
         sequence_input_lengths = [sequence_length] * batch_size
         #sequence_input_lengths = chunk_lengths.view(-1)
-
-        hrnn_outputs, hrnn_hidden = self.hrnn(reshaped_encoder_outputs, sequence_input_lengths)
+        word_len = reshaped_encoder_outputs.size()[2]
+        reshaped_encoder_outputs = reshaped_encoder_outputs.view(batch_size, sequence_length * word_len, -1).contiguous()
+        #print("Reshaped Outputs", reshaped_encoder_outputs.size())
+        hrnn_outputs, hrnn_hidden = self.hrnn(last_outputs,
+                                              reshaped_encoder_outputs,
+                                              sequence_input_lengths)
         #print("HRNN Outputs", hrnn_outputs.size())
 
         result = self.decoder(inputs=target_variable,
