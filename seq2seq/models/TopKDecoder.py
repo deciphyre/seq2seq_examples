@@ -115,7 +115,7 @@ class TopKDecoder(torch.nn.Module):
         sequence_scores = Variable(sequence_scores)
 
         # Initialize the input vector
-        input_var = Variable(torch.transpose(torch.LongTensor([[self.SOS] * batch_size * self.k]), 0, 1))
+        input_var = Variable(torch.transpose(torch.LongTensor([[self.SOS] * batch_size * self.k]), 0, 1)).cuda()
 
         # Store decisions for backtracking
         stored_outputs = list()
