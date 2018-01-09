@@ -9,7 +9,7 @@ import torchtext
 from torch import optim
 
 import seq2seq
-from seq2seq.evaluator import Evaluator
+from seq2seq.evaluator import PlainEvaluator as Evaluator
 from seq2seq.loss import NLLLoss
 from seq2seq.optim import Optimizer
 from seq2seq.util.checkpoint import Checkpoint
