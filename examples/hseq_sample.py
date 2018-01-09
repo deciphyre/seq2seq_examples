@@ -58,7 +58,10 @@ context_max_len = 1000
 
 
 def len_filter(example):
-    a = len(example.src) > 0 and len(example.tgt) > 0
+    if hasattr(example, 'tgt') == False:
+        print(example.src)
+
+    a = len(example.src) > 0 and hasattr(example, 'tgt')
     return a and len(example.src) <= context_max_len and len(example.tgt) <= max_len
 
 
@@ -135,8 +138,8 @@ else:
         # optimizer.set_scheduler(scheduler)
 
     # train
-    t = SupervisedTrainer(loss=loss, batch_size=30,
-                          checkpoint_every=1500,
+    t = SupervisedTrainer(loss=loss, batch_size=40,
+                          checkpoint_every=2000,
                           print_every=10, expt_dir=opt.expt_dir)
 
     seq2seq = t.train(seq2seq, train,
@@ -151,6 +154,7 @@ test = torchtext.data.TabularDataset(
         fields=[('src', src), ('tgt', tgt)],
         filter_pred=len_filter
 )
+
 #
 dups = []
 for example in test:
@@ -169,3 +173,19 @@ for example in test:
 #    seq_str = raw_input("Type in a source sequence:")
 #    seq = seq_str.strip().split()
 #    print(predictor.predict(seq))
+
+#for example in test:
+#    target = example.tgt
+#    seq_str = ['|'.join(x) for x in example.src]
+#    print(seq_str)
+#    print('>', target)
+#    prediction = predictor.predict(seq_str)
+#    print('#', prediction)
+#    print('='*20)
+
+# while True:
+#     seq_str = raw_input("Type in a source sequence:")
+#     seq = seq_str.strip().split()
+#
+#     print(predictor.predict(seq))
+
