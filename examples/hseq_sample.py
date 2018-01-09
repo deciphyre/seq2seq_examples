@@ -152,14 +152,18 @@ test = torchtext.data.TabularDataset(
         filter_pred=len_filter
 )
 #
-# for example in test:
-#      target = example.tgt
-#      seq_str = ['|'.join(x) for x in example.src]
-#      print(seq_str)
-#      print('>', target)
-#      prediction = predictor.predict(seq_str)
-#      print('#', prediction)
-#      print('='*20)
+dups = []
+for example in test:
+     target = example.tgt
+     seq_str = ['|'.join(x) for x in example.src]
+     prediction = predictor.predict(seq_str)
+     if prediction not in dups:
+         dups.append(prediction)
+         print(seq_str)
+         print('>', target)
+
+         print('#', prediction)
+         print('='*20)
 
 #while True:
 #    seq_str = raw_input("Type in a source sequence:")
