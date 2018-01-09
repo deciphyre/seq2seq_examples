@@ -54,7 +54,7 @@ logging.info(opt)
 src = HierarchialSourceField()
 tgt = TargetField()
 max_len = 50
-context_max_len = 400
+context_max_len = 1000
 
 
 def len_filter(example):

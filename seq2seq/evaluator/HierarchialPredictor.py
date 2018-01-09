@@ -35,14 +35,14 @@ class HierarchialPredictor(object):
         seq = [x.split('|') for x in src_seq]
         max_len = max(len(x) for x in seq)
         padded_seq = [x + ['<cpad>']*(max_len - len(x)) for x in seq]
-
+        chunk_lengths = torch.LongTensor([len(x) for x in seq])
         src_id_seq = Variable(torch.LongTensor([[self.src_vocab.stoi[tok] for tok in x] for x in padded_seq]),
                               volatile=True).view(1, len(padded_seq), -1)
 
         if torch.cuda.is_available():
             src_id_seq = src_id_seq.cuda()
-
-        softmax_list, _, other = self.model(src_id_seq, [len(src_seq)])
+            chunk_lengths = chunk_lengths.cuda()
+        softmax_list, _, other = self.model(src_id_seq, [len(padded_seq)], chunk_lengths)
         length = other['length'][0]
 
         tgt_id_seq = [other['sequence'][di][0].data[0] for di in range(length)]
