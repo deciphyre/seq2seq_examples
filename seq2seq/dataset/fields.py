@@ -60,8 +60,9 @@ class HierarchialSourceField(torchtext.data.Field):
                              "input data is not a tuple of "
                              "(data batch, batch lengths).")
         if isinstance(arr, tuple):
-            arr, lengths = arr
+            arr, lengths, chunk_lengths = arr
             lengths = torch.LongTensor(lengths)
+            chunk_lengths = torch.LongTensor(chunk_lengths)
 
         if self.use_vocab:
             if self.sequential:
@@ -102,8 +103,9 @@ class HierarchialSourceField(torchtext.data.Field):
             arr = arr.cuda(device)
             if self.include_lengths:
                 lengths = lengths.cuda(device)
+                chunk_lengths = chunk_lengths.cuda(device)
         if self.include_lengths:
-            return Variable(arr, volatile=not train), lengths
+            return Variable(arr, volatile=not train), lengths, chunk_lengths
         return Variable(arr, volatile=not train)        
 
     def pad(self, minibatch):
@@ -120,11 +122,11 @@ class HierarchialSourceField(torchtext.data.Field):
 
 
         field_max_len = max([len(y) for x in minibatch for y in x])
-        
+        all_chunk_lengths = []
        # print(max_len, field_max_len)
         for x in minibatch:
         #    print(x)
-
+            chunk_lengths = []
             ypadded = []
             for y in x:
 
@@ -140,7 +142,7 @@ class HierarchialSourceField(torchtext.data.Field):
                         list(y[:field_max_len]) +
                         ([] if self.eos_token is None else [self.eos_token]) +
                         [self.chunk_pad_token] * max(0, field_max_len - len(y)))
-
+                chunk_lengths.append(len(ypadded[-1]) - max(0, field_max_len - len(y)))
             
             
             if self.pad_first:
@@ -155,12 +157,15 @@ class HierarchialSourceField(torchtext.data.Field):
                     list(ypadded[:max_len]) +
                     ([] if self.eos_token is None else [self.eos_token]) +
                     [[self.chunk_pad_token] * field_max_len] * max(0, max_len - len(ypadded)))
+
+            chunk_lengths += [1] * max(0, max_len - len(ypadded))
             lengths.append(len(padded[-1]) - max(0, max_len - len(ypadded)))
+            all_chunk_lengths.append(chunk_lengths)
 
  #       print(minibatch)
  #       print(padded)
         if self.include_lengths:
-            return (padded, lengths)
+            return (padded, lengths, all_chunk_lengths)
         return padded        
 
     def build_vocab(self, *args, **kwargs):

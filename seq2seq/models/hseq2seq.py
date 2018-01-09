@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
-
+import torch
 
 class HSeq2seq(nn.Module):
     """ Standard sequence-to-sequence architecture with configurable encoder
@@ -46,27 +46,38 @@ class HSeq2seq(nn.Module):
         self.hrnn.rnn.flatten_parameters()
         self.decoder.rnn.flatten_parameters()
 
-    def forward(self, input_variable, input_lengths=None, target_variable=None,
+    def forward(self, input_variable, input_lengths=None, chunk_lengths =None,  target_variable=None,
                 teacher_forcing_ratio=0):
-#        print(input_variable.size())
-#        print(input_variable.data)
+        #print(input_variable.size())
+        #print(input_variable.data)
         transformed_input = input_variable.view(-1, input_variable.size()[-1])
-        #print(input_variable.size(), "Transformed into", transformed_input.size())
+       # print(input_variable.size(), "Transformed into", transformed_input.size())
+        #print(transformed_input.data)
+
+       # where_zeros = (transformed_input.data == 0)
+       # print(where_zeros)
+       # print(torch.max(where_zeros, 1))
         batch_size = input_variable.size()[0]
         sequence_length = input_variable.size()[1] # [Batch Size, Seq Length, Chunk Length]
         chunk_length = input_variable.size()[2]
-        transformed_input_lengths = [chunk_length] * transformed_input.size()[0] # New Batch size = batch_size * seq_len
+        #transformed_input_lengths = [chunk_length] * transformed_input.size()[0] # New Batch size = batch_size * seq_len
+        transformed_input_lengths = chunk_lengths.view(-1)
+        sorted_lengths, perm = transformed_input_lengths.sort(0, descending=True)
+        sorted_input = transformed_input[perm].contiguous()
+
 #        print(input_lengths)
 #        print(transformed.data)
 #        encoder_outputs, encode_hidden = self.encoder(input_variable, input_lengths)
-        encoder_outputs, encoder_hidden = self.encoder(transformed_input, transformed_input_lengths)
+        encoder_outputs, encoder_hidden = self.encoder(sorted_input, sorted_lengths.contiguous().tolist())
         #print("Outputs of Encoder", encoder_outputs.size(), encoder_hidden.size())
-
-        last_outputs = encoder_outputs[:, -1, :] # From [Batch Size, Seq Length, Chunk Length]
+        _, original_idx = perm.sort(0, descending=False)
+        encoder_outputs = encoder_outputs[original_idx]
+        last_outputs = encoder_outputs[:, -1, :].contiguous() # From [Batch Size, Seq Length, Chunk Length]
         #print("Last outputs", last_outputs.size())
         reshaped_encoder_outputs = last_outputs.view(batch_size, sequence_length, -1)
         #print("Reshaped Outputs", reshaped_encoder_outputs.size())
         sequence_input_lengths = [sequence_length] * batch_size
+        #sequence_input_lengths = chunk_lengths.view(-1)
 
         hrnn_outputs, hrnn_hidden = self.hrnn(reshaped_encoder_outputs, sequence_input_lengths)
         #print("HRNN Outputs", hrnn_outputs.size())

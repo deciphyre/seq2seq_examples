@@ -54,7 +54,7 @@ logging.info(opt)
 src = HierarchialSourceField()
 tgt = TargetField()
 max_len = 50
-context_max_len = 400
+context_max_len = 1000
 
 
 def len_filter(example):
@@ -135,8 +135,8 @@ else:
         # optimizer.set_scheduler(scheduler)
 
     # train
-    t = SupervisedTrainer(loss=loss, batch_size=15,
-                          checkpoint_every=500,
+    t = SupervisedTrainer(loss=loss, batch_size=30,
+                          checkpoint_every=1500,
                           print_every=10, expt_dir=opt.expt_dir)
 
     seq2seq = t.train(seq2seq, train,
@@ -151,17 +151,17 @@ test = torchtext.data.TabularDataset(
         fields=[('src', src), ('tgt', tgt)],
         filter_pred=len_filter
 )
-for example in test:
-    target = example.tgt
-    seq_str = ['|'.join(x) for x in example.src]
-    print(seq_str)
-    print('>', target)
-    prediction = predictor.predict(seq_str)
-    print('#', prediction)
-    print('='*20)
+#
+# for example in test:
+#      target = example.tgt
+#      seq_str = ['|'.join(x) for x in example.src]
+#      print(seq_str)
+#      print('>', target)
+#      prediction = predictor.predict(seq_str)
+#      print('#', prediction)
+#      print('='*20)
 
-while True:
-    seq_str = raw_input("Type in a source sequence:")
-    seq = seq_str.strip().split()
-
-    print(predictor.predict(seq))
+#while True:
+#    seq_str = raw_input("Type in a source sequence:")
+#    seq = seq_str.strip().split()
+#    print(predictor.predict(seq))

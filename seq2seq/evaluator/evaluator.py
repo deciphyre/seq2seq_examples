@@ -44,10 +44,10 @@ class Evaluator(object):
         pad = tgt_vocab.stoi[data.fields[seq2seq.tgt_field_name].pad_token]
 
         for batch in batch_iterator:
-            input_variables, input_lengths  = getattr(batch, seq2seq.src_field_name)
+            input_variables, input_lengths, chunk_lengths  = getattr(batch, seq2seq.src_field_name)
             target_variables = getattr(batch, seq2seq.tgt_field_name)
 
-            decoder_outputs, decoder_hidden, other = model(input_variables, input_lengths.tolist(), target_variables)
+            decoder_outputs, decoder_hidden, other = model(input_variables, input_lengths.tolist(), chunk_lengths, target_variables)
 
             # Evaluation
             seqlist = other['sequence']
